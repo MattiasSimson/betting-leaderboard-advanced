@@ -1,3 +1,8 @@
+# Important
+
+This is a home assignment for CoolBet internship. The original assingment is explained below. CHeck out the additional Readme files in 'client' and 'server' for further clarification.
+This is the 'ADVANCED' version of the assignment. For a simple, straight-forward solution, check out: Github link here
+
 # Home Assignment - Betting Leaderboard
 
 This is a full-stack development assignment where you need to modify both the frontend application in the `/client` folder and the backend application in the `/server` folder. To learn more about the frontend and backend applications and how they work, check out the README.md files in their respective folders.
