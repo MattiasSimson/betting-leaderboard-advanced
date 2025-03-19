@@ -1,0 +1,38 @@
+.countryButton {
+  background-color: rgb(66, 66, 78) !important;
+  color: rgb(80, 222, 224) !important;
+  border: 1px solid rgb(33, 32, 38) !important;
+  transition: all 0.3s ease !important;
+  text-transform: none !important;
+  font-weight: bolder;
+  padding: 6px 16px !important;
+  border-radius: 4px !important;
+}
+
+.countryButton:hover {
+  background-color: rgb(57, 82, 90) !important;
+  border-color: rgb(80, 222, 224) !important;
+}
+
+.selectedButton {
+  background-color: rgb(80, 222, 224) !important;
+  color: rgb(46, 47, 58) !important;
+  border: 1px solid rgb(80, 222, 224) !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  padding: 6px 16px !important;
+  border-radius: 4px !important;
+}
+
+.selectedButton:hover {
+  background-color: rgb(80, 222, 224) !important;
+  color: rgb(46, 47, 58) !important;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+} 

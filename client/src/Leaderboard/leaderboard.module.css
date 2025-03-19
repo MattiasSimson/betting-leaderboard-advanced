@@ -1,0 +1,94 @@
+:root {
+    --color-background: rgb(47, 47, 58);
+    --color-accent: rgb(241, 177, 3);
+    --color-border: rgb(80, 80, 90);
+    --color-text: #ffffff;
+    --font-family: 'Roboto', sans-serif;
+    
+  }
+  
+  .leaderboard {
+    text-align: center;
+    color: var(--color-accent);
+    font-family: var(--font-family);
+    font-weight: bold;
+  }
+  
+  
+  .dataGrid :global(.MuiDataGrid-columnHeader) {
+    background-color: var(--color-background);
+    color: var(--color-accent);
+    border-color: var(--color-border) !important;
+    font-weight: bold;
+  }
+  
+  
+  .dataGrid :global(.MuiDataGrid-sortIcon) {
+    background-color: transparent;
+    color: var(--color-accent);
+  }
+  
+  .dataGrid :global(.MuiDataGrid-iconButtonContainer) {
+    background-color: transparent;
+  }
+  
+  /* Fix for cells */
+  .dataGrid :global(.MuiDataGrid-cell) {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border-color: var(--color-border) !important;
+    font-weight: bold;
+  }
+
+  .dataGrid {
+    border-color: var(--color-border) !important;
+  }
+
+  .dataGrid :global(.MuiDataGrid-root) {
+    border-color: var(--color-border) !important;
+  }
+
+  .dataGrid :global(.MuiDataGrid-main) {
+    border-color: var(--color-border) !important;
+  }
+
+  .dataGrid :global(.MuiDataGrid-columnHeaders) {
+    border-color: var(--color-border) !important;
+  }
+
+  .dataGrid :global(.MuiDataGrid-footerContainer) {
+    border-color: var(--color-border) !important;
+  }
+  
+  .nameCell {
+    white-space: normal;
+  }
+  
+
+
+
+  
+  /* Media query for mobile view */
+  @media (max-width: 600px) {
+    .dataGrid :global(.MuiDataGrid-sortIcon) {
+      display: none;
+    }
+    
+    .dataGrid :global(.MuiDataGrid-iconButtonContainer) {
+      display: none;
+    }
+    
+    .dataGrid :global(.MuiDataGrid-columnHeaderTitleContainer) {
+      justify-content: center;
+    }
+  }
+
+  /* Fix for all internal borders */
+  .dataGrid :global(.MuiDataGrid-withBorderColor) {
+    border-color: var(--color-border) !important;
+  }
+
+  /* Fix for column separators */
+  .dataGrid :global(.MuiDataGrid-columnSeparator) {
+    color: var(--color-border) !important;
+  }
