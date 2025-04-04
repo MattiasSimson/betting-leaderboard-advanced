@@ -1,4 +1,4 @@
-export type CustomerCountry = 'Estonia' | 'Finland' | 'Norway' | 'Chile' | 'Canada';
+type CustomerCountry = 'Estonia' | 'Finland' | 'Norway' | 'Chile' | 'Canada';
 
 export interface DatabaseCustomer {
     id: string;
@@ -19,14 +19,4 @@ export interface DatabaseBet {
     status: BetStatus;
     created_at: Date;
     updated_at: Date;
-}
-
-// the leaderboard customer interface for transformed data
-export interface LeaderboardCustomer {
-    id: string;
-    name: string;
-    country: string;
-    totalBets: number;
-    winPercentage: number;
-    profit: number;
 }

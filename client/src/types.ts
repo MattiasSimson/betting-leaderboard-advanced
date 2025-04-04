@@ -9,12 +9,8 @@ export interface DatabaseCustomer {
     updated_at: Date;
 }
 
-// type check for the leaderboard
-export interface LeaderboardCustomer {
-    id: string;
-    name: string;
-    country: string;
-    totalBets: number;
-    winPercentage: number;
+export interface LeaderboardCustomer extends DatabaseCustomer {
+    total_bets: number;
+    win_percentage: number;
     profit: number;
 }

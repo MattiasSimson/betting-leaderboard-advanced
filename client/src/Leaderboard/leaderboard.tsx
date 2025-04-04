@@ -1,124 +1,114 @@
 import { DataGrid } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import { fetchLeaderboard} from '../requests';
-import { LeaderboardCustomer } from '../types';
+import { fetchCustomers, fetchByCountry } from '../requests';
+import type { LeaderboardCustomer } from '../types';
 import styles from './leaderboard.module.css';
 import CountryButtons from '../CountryButtons/countrybuttons';
-import type { CustomerCountry } from '../types';
 
 function Leaderboard() {
-  // -- STATE -- //
-  // state for storing leaderboard data
-  const [rows, setRows] = useState<LeaderboardCustomer[]>([]);
+  const [customers, setCustomers] = useState<LeaderboardCustomer[]>([]);
+  const [allCustomers, setAllCustomers] = useState<LeaderboardCustomer[]>([]);
+  const [uniqueCountries, setUniqueCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCountries, setSelectedCountries] = useState<(CustomerCountry | 'ALL')[]>(['ALL']);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(['ALL']);
 
-  // -- DATA HANDLING -- //
-  // load leaderboard data whenever selected countries change
-  useEffect(function() {
-    function loadLeaderboard() {
-      setLoading(true);
-      
-      let countriesToFetch;
-      // check if the selected countries include 'ALL'
-      if (selectedCountries.includes('ALL')) {
-        // if 'ALL' is included, set countriesToFetch to undefined
-        countriesToFetch = undefined;
-      } else {
-        // if 'ALL' is not included, set countriesToFetch to the selected countries
-        countriesToFetch = selectedCountries;
-      }
-      
-      // fetch the data - backend already sorts by profit desc and limits to top 10
-      // most of the calculations are done on the backend (SQL)
-      fetchLeaderboard(countriesToFetch)
-        .then(function(data) {
-          // round profit values to 2 decimal places in the data
-          const roundedData = data.map(function(item) {
-            return {
-              ...item,
-              // rounding
-              profit: Math.round(item.profit * 100) / 100
-            };
-          });
-          
-          setRows(roundedData);
-          
-          
-          
-          setLoading(false);
-        })
-        .catch(function(error) {
-          console.error('failed to load leaderboard data:', error);
-          setLoading(false);
-        });
-    }
+  async function init() {
+    setLoading(true);
+    const data = await fetchCustomers();
+    setAllCustomers(data);
+    setCustomers(data);
     
-    loadLeaderboard();
-  }, [selectedCountries]);
-
-  // -- EVENT HANDLERS -- //
-  // handle when a country button is clicked
-  function handleCountryChange(country: string, isSelected: boolean) {
-    if (country === 'ALL') {
-      // if ALL is clicked and should be selected, only select ALL
-      if (isSelected) {
-        setSelectedCountries(['ALL']);
-      } else {
-        // if ALL is deselected, clear all selections
-        setSelectedCountries([]);
-      }
-    } else {
-      // make a copy of current selections
-      let newSelections = [...selectedCountries];
-      
-      // remove ALL from selections if present
-      newSelections = newSelections.filter(function(c) {
-        return c !== 'ALL';
-      });
-      
-      // remove the clicked country if it's already selected
-      newSelections = newSelections.filter(function(c) {
-        return c !== country;
-      });
-      
-      // add the country if it should be selected
-      if (isSelected) {
-        newSelections.push(country as CustomerCountry);
-      }
-      
-      // if nothing is selected, select ALL
-      if (newSelections.length === 0) {
-        newSelections = ['ALL'];
-      }
-      
-      setSelectedCountries(newSelections);
-    }
+    // get unique countries
+    const countries = [...new Set(data.map(c => c.country))];
+    setUniqueCountries(countries);
+    setLoading(false);
   }
 
-  // -- UI CONFIGURATION -- //
-  // simple column definitions 
-  // using weird span stuff to make it look correct on mobile view and smaller screens
+  useEffect(() => {
+    init();
+  }, []);
+
+  async function handleFetchByCountry(country: string | string[]) {
+    setLoading(true);
+    
+    let result;
+    if (country === "ALL" || (Array.isArray(country) && country.includes("ALL"))) {
+      result = allCustomers;
+    } else if (Array.isArray(country) && country.length > 1) {
+      // multi-country implementation
+      const results = await Promise.all(country.map(c => fetchByCountry(c)));
+      const uniqueMap = new Map();
+      results.flat().forEach(c => uniqueMap.set(c.id, c));
+      result = Array.from(uniqueMap.values());
+    } else {
+      const singleCountry = Array.isArray(country) ? country[0] : country;
+      result = await fetchByCountry(singleCountry);
+    }
+    
+    // sort by profit (descending) and limit to 10 results
+    // most sorting is done in the backend, this just makes sure you have a max of 10 in the frontend too
+    const sortedResult = [...result].sort((a, b) => b.profit - a.profit).slice(0, 10);
+    setCustomers(sortedResult);
+    
+    setLoading(false);
+  }
+
+  function handleCountryChange(country: string, isSelected: boolean) {
+    let newSelection = [...selectedCountries];
+    
+    if (country === 'ALL') {
+      if (isSelected) {
+        newSelection = ['ALL'];
+      } else {
+        newSelection = ['ALL']; // makes sure ALL cant be unselected
+      }
+    } else {
+      // remove ALL if present
+      newSelection = newSelection.filter(c => c !== 'ALL');
+      
+      // add or remove the selected country
+      if (isSelected && !newSelection.includes(country)) {
+        newSelection.push(country);
+      } else if (!isSelected) {
+        newSelection = newSelection.filter(c => c !== country);
+      }
+      
+      // default to ALL if nothing is selected
+      if (newSelection.length === 0) {
+        newSelection = ['ALL'];
+      }
+    }
+    
+    setSelectedCountries(newSelection);
+    handleFetchByCountry(newSelection);
+  }
+
+  const processedRows = customers.map(item => {
+    return {
+      ...item,
+      id: item.id,
+      name: `${item.first_name} ${item.last_name}`,
+      totalBets: item.total_bets,
+      winPercentage: item.win_percentage,
+      profit: Math.round(item.profit * 100) / 100
+    };
+  });
+
   const columns = [
     { 
       field: 'name', 
-      width: 120, 
-      flex: 1.0,
+      headerName: 'Name',
+      flex: 2,
       renderHeader: function() {
         return (
-          <div style={{ lineHeight: "1.2em" }}>
+          <div style={{ lineHeight: "1.2em", textAlign: "center" }}>
             <span>Name</span>
           </div>
         );
       },
       renderCell: function(params: any) {
         return (
-          <div style={{ 
-            width: '100%',
-            display: 'flex',
-            whiteSpace: 'pre-wrap',
-            lineHeight: window.innerWidth < 600 ? '1.5' : '3.5',
-          }}>
+          <div className={styles.nameCell}>
             {params.value}
           </div>
         );
@@ -126,23 +116,23 @@ function Leaderboard() {
     }, 
     { 
       field: 'country',
-      width: 100, 
-      flex: 1.3,
+      headerName: 'Country',
+      flex: 1,
       renderHeader: function() {
         return (
-          <div style={{ lineHeight: "1.2em" }}> 
+          <div style={{ lineHeight: "1.2em", textAlign: "center" }}> 
             <span>Country</span>
           </div>
         );
       }
     },
     { 
-      field: 'totalBets', 
-      width: 120, 
+      field: 'totalBets',
+      headerName: 'Total Bets', 
       flex: 1,
       renderHeader: function() {
         return ( 
-          <div style={{ lineHeight: "1.2em" }}>  {/* such a stupid way to have wraps in MUI lol */ }
+          <div style={{ lineHeight: "1.2em", textAlign: "center" }}>
             <span>Total</span>
             <br />
             <span>Bets</span>
@@ -151,12 +141,12 @@ function Leaderboard() {
       }
     },
     { 
-      field: 'winPercentage', 
-      width: 90, 
+      field: 'winPercentage',
+      headerName: 'Win %', 
       flex: 1,
       renderHeader: function() {
         return (
-          <div style={{ lineHeight: "1.2em" }}>
+          <div style={{ lineHeight: "1.2em", textAlign: "center" }}>
             <span>Win </span>
             <br />
             <span>%</span>
@@ -165,34 +155,33 @@ function Leaderboard() {
       }
     },
     { 
-      field: 'profit', 
-      width: 180,
+      field: 'profit',
+      headerName: 'Profit', 
       flex: 1.5,
       renderHeader: function() {
         return (
-          <div style={{ lineHeight: "1.2em" }}>
+          <div style={{ lineHeight: "1.2em", textAlign: "center" }}>
             <span>Profit</span>
           </div>
         );
       },
       renderCell: function(params: any) {
-        // format profit to always show 2 decimal places and add EUR
         const formattedProfit = params.value.toFixed(2) + ' €';
         return <div>{formattedProfit}</div>;
       }
     },
   ];
   
-  // -- RENDER -- //
   return (
-    <div>
+    <div className={styles.leaderboardContainer}>
       <CountryButtons 
         selectedCountries={selectedCountries} 
         onCountryChange={handleCountryChange} 
+        availableCountries={uniqueCountries}
       />
       <DataGrid
         className={styles.dataGrid}
-        rows={rows}
+        rows={processedRows}
         columns={columns}
         disableColumnMenu
         disableColumnSelector
@@ -200,7 +189,7 @@ function Leaderboard() {
         disableColumnResize
         hideFooter
         loading={loading}
-        columnHeaderHeight={60} 
+        columnHeaderHeight={60}
         getRowId={function(row) { return row.id; }}
       />
     </div>

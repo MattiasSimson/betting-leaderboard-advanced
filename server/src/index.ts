@@ -3,9 +3,10 @@ import cors from 'cors';
 import { router } from './router';
 
 const app: Express = express();
-const port = process.env.PORT || 3001; // changed it because I was already using it
+const port = process.env.PORT || 3000;
 
 app.use(cors());
+
 app.use(router);
 
 app.listen(port, () => {

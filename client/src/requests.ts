@@ -1,25 +1,22 @@
-import type { CustomerCountry, LeaderboardCustomer } from "./types";
+import type { LeaderboardCustomer } from "./types";
 
-export async function fetchLeaderboard(countries?: (CustomerCountry | 'ALL')[]): Promise<LeaderboardCustomer[]> {
+export async function fetchCustomers(): Promise<LeaderboardCustomer[]> {
     try {
-        let url = 'http://localhost:3001/leaderboard';
-        
-        // add country filter if provided and not 'ALL'
-        if (countries && countries.length > 0 && !countries.includes('ALL')) {
-            const countryParams = countries.map(c => `country=${encodeURIComponent(c)}`).join('&');
-            url = `${url}?${countryParams}`;
-        }
-        
-        console.log('Fetching from URL:', url);
-        const response = await fetch(url, { method: 'GET' });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        return response.json();
+        const customers = await fetch('http://localhost:3000/customers', { method: 'GET' })
+        return customers.json();
     } catch (error) {
-        console.error('Error fetching leaderboard:', error);
+        console.error(error);
+        return [];
+    }
+}
+
+
+export async function fetchByCountry(country: string): Promise<LeaderboardCustomer[]> {
+    try {
+        const customers = await fetch(`http://localhost:3000/customers/country/${country}`);
+        return customers.json();
+    } catch (error) {
+        console.error(error);
         return [];
     }
 }

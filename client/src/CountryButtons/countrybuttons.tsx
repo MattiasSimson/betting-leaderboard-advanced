@@ -1,47 +1,19 @@
 import Button from '@mui/material/Button';
-import { useEffect, useState } from 'react';
-import { fetchLeaderboard } from '../requests';
 import styles from './countrybuttons.module.css';
-import type { CustomerCountry } from '../types';
+
+// Define CustomerCountry type if not already imported from types
+type CustomerCountry = string;
 
 interface CountryButtonsProps {
   selectedCountries: (CustomerCountry | 'ALL')[];
   onCountryChange: (country: string, isSelected: boolean) => void;
+  availableCountries?: string[]; // Make this optional to maintain backward compatibility
 }
 
 function CountryButtons(props: CountryButtonsProps) {
-  // -- STATE -- //
-  // available countries to display in buttons
-  const [availableCountries, setAvailableCountries] = useState<(CustomerCountry | 'ALL')[]>(['ALL']);
-
-  // -- DATA HANDLING -- //
-  // load available countries
-  useEffect(function() {
-    // load countries from leaderboard data
-    function loadCountries() {
-      fetchLeaderboard()
-        .then(function(data) {
-          // get unique countries from data
-          const countries: string[] = [];
-          for (let i = 0; i < data.length; i++) {
-            const country = data[i].country;
-            if (!countries.includes(country)) {
-              countries.push(country);
-            }
-          }
-          
-          // add 'ALL' at the beginning
-          setAvailableCountries(['ALL', ...countries] as (CustomerCountry | 'ALL')[]);
-        })
-        .catch(function(error) {
-          console.error('failed to load countries:', error);
-          // fallback to predefined countries
-          setAvailableCountries(['ALL', 'Estonia', 'Finland', 'Norway', 'Chile', 'Canada']);
-        });
-    }
-    
-    loadCountries();
-  }, []);
+  // -- UI SETUP -- //
+  // available countries to display in buttons - use prop or default list
+  const buttonCountries = ['ALL', ...(props.availableCountries || ['Estonia', 'Finland', 'Norway', 'Chile', 'Canada'])];
 
   // -- EVENT HANDLERS -- //
   // handle when a button is clicked
@@ -63,7 +35,7 @@ function CountryButtons(props: CountryButtonsProps) {
   // render the country buttons
   return (
     <div className={styles.buttonContainer}>
-      {availableCountries.map(function(country) {
+      {buttonCountries.map(function(country) {
         // determine if this button is selected
         let isSelected = false;
         for (let i = 0; i < props.selectedCountries.length; i++) {
@@ -92,4 +64,4 @@ function CountryButtons(props: CountryButtonsProps) {
   );
 }
 
-export default CountryButtons;
+export default CountryButtons; 
